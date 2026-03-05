@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — Submit Task</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#13161e;--surf2:#1a1e28;--border:rgba(255,255,255,0.07);--accent:#5b7cfa;--green:#4ec9a0;--amber:#f0a84e;--red:#f0614e;--text:#eef0f7;--muted:#7a7f96;--r:14px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;min-height:100vh;}
+    .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;}
+    .logo{padding:26px 22px 20px;border-bottom:1px solid var(--border);}
+    .logo h1{font-family:'DM Serif Display',serif;font-size:21px;}.logo h1 span{color:var(--accent);}
+    .logo p{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+    nav{padding:18px 10px;flex:1;}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);padding:0 12px;margin:16px 0 5px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:.15s;}
+    .nav-item:hover{background:var(--surf2);color:var(--text);}
+    .nav-item.active{background:rgba(91,124,250,.15);color:var(--accent);}
+    .nav-item .ico{font-size:15px;width:18px;text-align:center;}
+    .user-block{padding:16px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .uname{font-size:13px;font-weight:600;}.urole{font-size:11px;color:var(--muted);}
+    .main{margin-left:230px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;}
+    .topbar h2{font-size:18px;font-weight:600;}
+    .content{padding:28px 32px;flex:1;max-width:680px;}
+    .task-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px;}
+    .task-info h3{font-size:16px;font-weight:600;margin-bottom:10px;}
+    .task-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px;}
+    .task-meta span{font-size:12px;color:var(--muted);}
+    .task-meta span b{color:var(--text);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .blow{background:rgba(78,201,160,.15);color:var(--green);}
+    .bmed{background:rgba(240,168,78,.15);color:var(--amber);}
+    .bhigh{background:rgba(240,97,78,.15);color:var(--red);}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;}
+    .card h3{font-size:16px;font-weight:600;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+    .fg{margin-bottom:18px;}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+    input[type=file]{width:100%;background:var(--surf2);border:2px dashed var(--border);color:var(--text);padding:20px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;}
+    input[type=file]:hover{border-color:var(--accent);}
+    textarea{width:100%;background:var(--surf2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:100px;}
+    textarea:focus{border-color:var(--accent);}
+    .actions{display:flex;gap:12px;margin-top:8px;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:11px 22px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:.15s;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-ghost{background:var(--surf2);color:var(--text);border:1px solid var(--border);}
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;}
+    .alert-error{background:rgba(240,97,78,.1);border:1px solid rgba(240,97,78,.3);color:var(--red);}
+    .info-box{background:rgba(91,124,250,.08);border:1px solid rgba(91,124,250,.2);border-radius:10px;padding:14px 16px;font-size:13px;color:var(--muted);margin-bottom:20px;}
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="logo"><h1>Edu<span>Core</span></h1><p>Student Portal</p></div>
+  <nav>
+    <div class="nav-label">Menu</div>
+    <a href="{% url 'student_dashboard' %}" class="nav-item"><span class="ico">🏠</span> Dashboard</a>
+    <a href="{% url 'student_my_tasks' %}" class="nav-item active"><span class="ico">📋</span> My Tasks</a>
+    <a href="{% url 'student_apply_leave' %}" class="nav-item"><span class="ico">✍️</span> Apply Leave</a>
+    <a href="{% url 'student_my_leaves' %}" class="nav-item"><span class="ico">📅</span> My Leaves</a>
+    <a href="{% url 'student_attendance' %}" class="nav-item"><span class="ico">📊</span> Attendance</a>
+    <a href="{% url 'student_announcements' %}" class="nav-item"><span class="ico">📢</span> Announcements</a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'logout' %}" class="nav-item"><span class="ico">🚪</span> Logout</a>
+  </nav>
+  <div class="user-block">
+    <div class="avatar">{{ student.user.get_full_name|slice:":1"|upper }}</div>
+    <div><div class="uname">{{ student.user.get_full_name }}</div><div class="urole">{{ student.course }}</div></div>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <h2>📤 Submit Task</h2>
+    <a href="{% url 'student_my_tasks' %}" class="btn btn-ghost" style="font-size:13px;padding:7px 14px">← Back to Tasks</a>
+  </div>
+  <div class="content">
+    {% for msg in messages %}
+    <div class="alert alert-error">{{ msg }}</div>
+    {% endfor %}
+
+    <div class="task-info">
+      <h3>{{ task.title }}</h3>
+      {% if task.description %}<p style="font-size:13px;color:var(--muted);margin-top:6px">{{ task.description }}</p>{% endif %}
+      <div class="task-meta">
+        <span>Due: <b>{{ task.due_date }}</b></span>
+        <span>Priority: <b>
+          {% if task.priority == 'Low' %}<span class="badge blow">Low</span>
+          {% elif task.priority == 'Medium' %}<span class="badge bmed">Medium</span>
+          {% else %}<span class="badge bhigh">High</span>{% endif %}
+        </b></span>
+        <span>Assigned: <b>{{ task.assigned_on|date:"M d, Y" }}</b></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Upload Your Submission</h3>
+      <div class="info-box">📎 Upload your completed task file. Accepted formats: PDF, DOC, DOCX, images, ZIP, etc.</div>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="fg">
+          <label>Select File *</label>
+          <input type="file" name="file" required/>
+        </div>
+        <div class="fg">
+          <label>Additional Note (optional)</label>
+          <textarea name="note" placeholder="Any notes or comments about your submission..."></textarea>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">📤 Submit Task</button>
+          <a href="{% url 'student_my_tasks' %}" class="btn btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</body></html>

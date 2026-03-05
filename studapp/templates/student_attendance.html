@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — My Attendance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#13161e;--surf2:#1a1e28;--border:rgba(255,255,255,0.07);--accent:#5b7cfa;--green:#4ec9a0;--amber:#f0a84e;--red:#f0614e;--text:#eef0f7;--muted:#7a7f96;--r:14px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;min-height:100vh;}
+    .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;}
+    .logo{padding:26px 22px 20px;border-bottom:1px solid var(--border);}
+    .logo h1{font-family:'DM Serif Display',serif;font-size:21px;}.logo h1 span{color:var(--accent);}
+    .logo p{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+    nav{padding:18px 10px;flex:1;}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);padding:0 12px;margin:16px 0 5px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:.15s;}
+    .nav-item:hover{background:var(--surf2);color:var(--text);}
+    .nav-item.active{background:rgba(91,124,250,.15);color:var(--accent);}
+    .nav-item .ico{font-size:15px;width:18px;text-align:center;}
+    .user-block{padding:16px 18px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .uname{font-size:13px;font-weight:600;}.urole{font-size:11px;color:var(--muted);}
+    .main{margin-left:230px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;}
+    .topbar h2{font-size:18px;font-weight:600;}
+    .content{padding:28px 32px;flex:1;}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+    .stat .val{font-size:28px;font-weight:600;margin:6px 0 2px;}.stat .lbl{font-size:12px;color:var(--muted);}
+    .pbar{background:var(--surf2);border-radius:999px;height:8px;margin-top:10px;overflow:hidden;}
+    .pfill{height:100%;border-radius:999px;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+    .ch{padding:14px 18px;border-bottom:1px solid var(--border);}
+    .ch h3{font-size:15px;font-weight:600;}
+    table{width:100%;border-collapse:collapse;}
+    th{padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);}
+    td{padding:13px 16px;font-size:14px;border-bottom:1px solid var(--border);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+    .bp{background:rgba(78,201,160,.15);color:var(--green);}
+    .ba{background:rgba(240,97,78,.15);color:var(--red);}
+    .empty{text-align:center;padding:50px;color:var(--muted);}
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="logo"><h1>Edu<span>Core</span></h1><p>Student Portal</p></div>
+  <nav>
+    <div class="nav-label">Menu</div>
+    <a href="{% url 'student_dashboard' %}" class="nav-item"><span class="ico">🏠</span> Dashboard</a>
+    <a href="{% url 'student_my_tasks' %}" class="nav-item"><span class="ico">📋</span> My Tasks</a>
+    <a href="{% url 'student_apply_leave' %}" class="nav-item"><span class="ico">✍️</span> Apply Leave</a>
+    <a href="{% url 'student_my_leaves' %}" class="nav-item"><span class="ico">📅</span> My Leaves</a>
+    <a href="{% url 'student_attendance' %}" class="nav-item active"><span class="ico">📊</span> Attendance</a>
+    <a href="{% url 'student_announcements' %}" class="nav-item"><span class="ico">📢</span> Announcements</a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'logout' %}" class="nav-item"><span class="ico">🚪</span> Logout</a>
+  </nav>
+  <div class="user-block">
+    <div class="avatar">{{ student.user.get_full_name|slice:":1"|upper }}</div>
+    <div><div class="uname">{{ student.user.get_full_name }}</div><div class="urole">{{ student.course }}</div></div>
+  </div>
+</div>
+<div class="main">
+  <div class="topbar"><h2>📊 My Attendance</h2></div>
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat"><div class="lbl">Total Classes</div><div class="val">{{ total }}</div></div>
+      <div class="stat"><div class="lbl">Present</div><div class="val" style="color:var(--green)">{{ present }}</div></div>
+      <div class="stat"><div class="lbl">Absent</div><div class="val" style="color:var(--red)">{{ absent }}</div></div>
+      <div class="stat">
+        <div class="lbl">Attendance %</div>
+        <div class="val" style="color:{% if pct >= 75 %}var(--green){% else %}var(--red){% endif %}">{{ pct }}%</div>
+        <div class="pbar"><div class="pfill" style="width:{{ pct }}%;background:{% if pct >= 75 %}var(--green){% else %}var(--red){% endif %}"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>Attendance Record</h3></div>
+      {% if attendance %}
+      <table>
+        <thead><tr><th>#</th><th>Date</th><th>Day</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for record in attendance %}
+        <tr>
+          <td style="color:var(--muted)">{{ forloop.counter }}</td>
+          <td style="font-weight:500">{{ record.date }}</td>
+          <td style="color:var(--muted)">{{ record.date|date:"l" }}</td>
+          <td>
+            {% if record.status == 'Present' %}
+              <span class="badge bp">✅ Present</span>
+            {% else %}
+              <span class="badge ba">❌ Absent</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><p style="font-size:36px">📊</p><p style="margin-top:10px">No attendance records yet.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</body></html>

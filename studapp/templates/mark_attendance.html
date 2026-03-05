@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — Mark Attendance</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #0d0f14;
+      --surface: #13161e;
+      --surf2:   #1a1e28;
+      --border:  rgba(255,255,255,0.07);
+      --accent:  #5b7cfa;
+      --green:   #4ec9a0;
+      --amber:   #f0a84e;
+      --red:     #f0614e;
+      --text:    #eef0f7;
+      --muted:   #7a7f96;
+      --r:       14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    .sidebar {
+      width: 230px; min-height: 100vh;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+    .logo { padding: 26px 22px 20px; border-bottom: 1px solid var(--border); }
+    .logo h1 { font-family: 'DM Serif Display', serif; font-size: 21px; }
+    .logo h1 span { color: var(--accent); }
+    .logo p { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+    nav { padding: 18px 10px; flex: 1; }
+    .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--muted); padding: 0 12px; margin: 16px 0 5px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 13px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      text-decoration: none; margin-bottom: 2px; transition: all .2s;
+    }
+    .nav-item:hover { background: var(--surf2); color: var(--text); }
+    .nav-item.active { background: rgba(91,124,250,.15); color: var(--accent); }
+    .nav-item .ico { font-size: 15px; width: 18px; text-align: center; }
+    .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
+    .sidebar-foot { padding: 14px; border-top: 1px solid var(--border); }
+    .user-pill { display: flex; align-items: center; gap: 9px; background: var(--surf2); border-radius: var(--r); padding: 9px 12px; }
+    .ava { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .user-pill p { font-size: 12.5px; font-weight: 500; line-height: 1.2; }
+    .user-pill span { font-size: 11px; color: var(--muted); }
+
+    /* ── Main ─────────────────────────────────────────────────────── */
+    .main { margin-left: 230px; flex: 1; display: flex; flex-direction: column; }
+
+    /* Topbar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 30px; border-bottom: 1px solid var(--border);
+      background: var(--bg); position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left h2 { font-family: 'DM Serif Display', serif; font-size: 19px; font-weight: 400; }
+    .topbar-left p  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .topbar-right   { display: flex; align-items: center; gap: 10px; }
+
+    .btn {
+      padding: 8px 16px; border-radius: 10px; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #4a6af0; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,124,250,.3); }
+    .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { background: var(--surf2); }
+    .btn-green { background: var(--green); color: #0d1a14; font-weight: 600; }
+    .btn-green:hover { background: #3db88e; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(78,201,160,.3); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+
+    /* Content */
+    .content { padding: 28px 30px; }
+
+    /* ── Summary bar ──────────────────────────────────────────────── */
+    .summary-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .sum-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      transition: transform .2s; animation: fadeUp .4s ease backwards;
+    }
+    .sum-card:hover { transform: translateY(-2px); }
+    .sum-card:nth-child(1) { animation-delay: .05s; }
+    .sum-card:nth-child(2) { animation-delay: .10s; }
+    .sum-card:nth-child(3) { animation-delay: .15s; }
+    .sum-card:nth-child(4) { animation-delay: .20s; }
+    .sum-ico {
+      width: 40px; height: 40px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .sum-body strong { font-family: 'DM Serif Display', serif; font-size: 26px; display: block; line-height: 1; }
+    .sum-body span   { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+
+    /* ── Toolbar ──────────────────────────────────────────────────── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 18px;
+      margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+      animation: fadeUp .4s .2s ease backwards;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; }
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .search-box {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surf2); border: 1px solid var(--border);
+      border-radius: 9px; padding: 7px 12px; width: 220px;
+    }
+    .search-box input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%;
+    }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .filter-select {
+      background: var(--surf2); border: 1px solid var(--border);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 7px 12px; border-radius: 9px; outline: none; cursor: pointer;
+    }
+
+    /* Bulk action buttons */
+    .bulk-btn {
+      padding: 7px 14px; border-radius: 9px; border: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 500;
+      cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 5px;
+    }
+    .bulk-present { background: rgba(78,201,160,.12); border-color: rgba(78,201,160,.25); color: var(--green); }
+    .bulk-present:hover { background: rgba(78,201,160,.22); }
+    .bulk-absent  { background: rgba(240,97,78,.12);  border-color: rgba(240,97,78,.25);  color: var(--red); }
+    .bulk-absent:hover  { background: rgba(240,97,78,.22); }
+
+    /* ── Attendance table ─────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden;
+      animation: fadeUp .4s .25s ease backwards;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 10.5px; font-weight: 500; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted);
+      padding: 12px 20px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surf2);
+    }
+    thead th:first-child { padding-left: 56px; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border: none; }
+    tbody tr:hover { background: rgba(255,255,255,.02); }
+
+    /* marked states */
+    tbody tr.marked-present { background: rgba(78,201,160,.05); }
+    tbody tr.marked-absent  { background: rgba(240,97,78,.05); }
+
+    td { padding: 13px 20px; font-size: 13px; vertical-align: middle; }
+
+    /* Row number */
+    .row-num {
+      width: 32px; color: var(--muted); font-size: 12px;
+      text-align: right; padding-right: 0; user-select: none;
+    }
+
+    /* Student info */
+    .s-info { display: flex; align-items: center; gap: 10px; }
+    .ava-sm {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    }
+    .s-info strong { font-size: 13.5px; font-weight: 500; display: block; }
+    .s-info span   { font-size: 11.5px; color: var(--muted); }
+
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 0; }
+    .toggle-btn {
+      padding: 7px 18px; font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--surf2); color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      transition: all .18s; position: relative;
+    }
+    .toggle-btn:first-child { border-radius: 9px 0 0 9px; border-right: none; }
+    .toggle-btn:last-child  { border-radius: 0 9px 9px 0; }
+
+    .toggle-btn.present.selected {
+      background: rgba(78,201,160,.18); border-color: var(--green);
+      color: var(--green); z-index: 1;
+    }
+    .toggle-btn.absent.selected {
+      background: rgba(240,97,78,.18); border-color: var(--red);
+      color: var(--red); z-index: 1;
+    }
+    .toggle-btn:hover:not(.selected) { background: var(--bg); color: var(--text); }
+
+    /* hidden radio */
+    .toggle-btn input[type="radio"] { display: none; }
+
+    /* Status badge (already marked) */
+    .status-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .chip-present { background: rgba(78,201,160,.15); color: var(--green); }
+    .chip-absent  { background: rgba(240,97,78,.15);  color: var(--red); }
+    .chip-pending { background: rgba(240,168,78,.12); color: var(--amber); }
+
+    /* Progress footer */
+    .table-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-top: 1px solid var(--border);
+      background: var(--surf2);
+    }
+    .table-footer p { font-size: 12.5px; color: var(--muted); }
+    .progress-mini { display: flex; align-items: center; gap: 10px; }
+    .prog-track { height: 6px; width: 160px; background: var(--bg); border-radius: 10px; overflow: hidden; }
+    .prog-fill  { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent), var(--green)); transition: width .5s ease; }
+
+    /* Submit section */
+    .submit-bar {
+      position: sticky; bottom: 0; z-index: 40;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 14px 30px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .submit-info p    { font-size: 13.5px; font-weight: 500; }
+    .submit-info span { font-size: 12px; color: var(--muted); }
+    .submit-actions { display: flex; gap: 10px; align-items: center; }
+
+    /* Empty */
+    .empty { padding: 48px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+    .empty span { display: block; font-size: 32px; margin-bottom: 10px; }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed; bottom: 80px; right: 24px; z-index: 200;
+      background: var(--surf2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; box-shadow: 0 8px 30px rgba(0,0,0,.4);
+      transform: translateX(120%); transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .toast.show { transform: translateX(0); }
+    .toast-icon { font-size: 16px; }
+
+    /* Responsive */
+    @media(max-width: 900px) {
+      .summary-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media(max-width: 720px) {
+      .sidebar { display: none; }
+      .main    { margin-left: 0; }
+      .summary-bar { grid-template-columns: 1fr 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <h1>Edu<span>Core</span></h1>
+    <p>Management System</p>
+  </div>
+  <nav>
+    <div class="nav-label">Main</div>
+    <a href="{% url 'dashboard' %}"         class="nav-item"><span class="ico">⊞</span> Dashboard</a>
+    <a href="{% url 'student_list' %}"      class="nav-item"><span class="ico">🎓</span> Students</a>
+    <a href="{% url 'mark_attendance' %}"   class="nav-item active"><span class="ico">✅</span> Mark Attendance</a>
+    <a href="{% url 'attendance_report' %}" class="nav-item"><span class="ico">📊</span> Reports</a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'logout' %}"            class="nav-item"><span class="ico">🚪</span> Logout</a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-pill">
+      <div class="ava">{{ admin_initials|default:"AD" }}</div>
+      <div>
+        <p>{{ admin_name|default:"Admin" }}</p>
+        <span>Administrator</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ───────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2>Mark Attendance</h2>
+      <p>{{ today|date:"l, F j Y" }}</p>
+    </div>
+    <div class="topbar-right">
+      <a href="{% url 'attendance_report' %}" class="btn btn-ghost">📊 View Report</a>
+      <a href="{% url 'dashboard' %}"         class="btn btn-ghost">← Dashboard</a>
+    </div>
+  </header>
+
+  <!-- Form wraps everything so the submit button works -->
+  <form method="post" id="attendanceForm">
+    {% csrf_token %}
+
+    <div class="content">
+
+      <!-- ── Summary cards ─────────────────────────────────────────── -->
+      <div class="summary-bar">
+        <div class="sum-card">
+          <div class="sum-ico" style="background:rgba(91,124,250,.15)">🎓</div>
+          <div class="sum-body">
+            <strong>{{ total }}</strong>
+            <span>Total Students</span>
+          </div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-ico" style="background:rgba(78,201,160,.15)">✅</div>
+          <div class="sum-body">
+            <strong id="presentCount">0</strong>
+            <span>Marked Present</span>
+          </div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-ico" style="background:rgba(240,97,78,.15)">❌</div>
+          <div class="sum-body">
+            <strong id="absentCount">0</strong>
+            <span>Marked Absent</span>
+          </div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-ico" style="background:rgba(240,168,78,.15)">⏳</div>
+          <div class="sum-body">
+            <strong id="pendingCount">{{ total }}</strong>
+            <span>Not Yet Marked</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Toolbar ───────────────────────────────────────────────── -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <span style="color:var(--muted);font-size:13px">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search student…" autocomplete="off"/>
+          </div>
+          <select class="filter-select" id="courseFilter">
+            <option value="">All Courses</option>
+            {% for s in students %}
+              <option value="{{ s.obj.course }}">{{ s.obj.course }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <button type="button" class="bulk-btn bulk-present" onclick="markAll('Present')">
+            ✅ All Present
+          </button>
+          <button type="button" class="bulk-btn bulk-absent" onclick="markAll('Absent')">
+            ❌ All Absent
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Table ─────────────────────────────────────────────────── -->
+      <div class="table-wrap">
+        {% if students %}
+        <table id="attendanceTable">
+          <thead>
+            <tr>
+              <th style="width:44px;">#</th>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Gender</th>
+              <th>Previous Attendance</th>
+              <th>Today's Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in students %}
+            <tr class="att-row {% if s.status == 'Present' %}marked-present{% elif s.status == 'Absent' %}marked-absent{% endif %}"
+                data-name="{{ s.obj.user.get_full_name|default:s.obj.user.username|lower }}"
+                data-course="{{ s.obj.course|lower }}"
+                id="row-{{ s.obj.id }}">
+
+              <!-- Row number -->
+              <td class="row-num">{{ forloop.counter }}</td>
+
+              <!-- Student info -->
+              <td>
+                <div class="s-info">
+                  <div class="ava-sm">{{ s.initials }}</div>
+                  <div>
+                    <strong>{{ s.obj.user.get_full_name|default:s.obj.user.username }}</strong>
+                    <span>#STU-{{ s.obj.id|stringformat:"04d" }} · Age {{ s.obj.age }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Course -->
+              <td style="color:var(--muted);font-size:13px">{{ s.obj.course }}</td>
+
+              <!-- Gender -->
+              <td style="color:var(--muted);font-size:13px">{{ s.obj.gender }}</td>
+
+              <!-- Previous attendance % -->
+              <td>
+                {% with pct=s.obj.attendance_percentage %}
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:60px;height:5px;background:var(--surf2);border-radius:10px;overflow:hidden">
+                    <div style="height:100%;width:{{ pct }}%;border-radius:10px;
+                                background:{% if pct >= 75 %}var(--green){% elif pct >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+                    </div>
+                  </div>
+                  <span style="font-size:12px;color:var(--muted)">{{ pct }}%</span>
+                </div>
+                {% endwith %}
+              </td>
+
+              <!-- Toggle Present / Absent -->
+              <td>
+                <div class="toggle-wrap" id="toggle-{{ s.obj.id }}">
+                  <label class="toggle-btn present {% if s.status == 'Present' %}selected{% endif %}"
+                         onclick="selectStatus({{ s.obj.id }}, 'Present')">
+                    <input type="radio" name="status_{{ s.obj.id }}" value="Present"
+                           {% if s.status == 'Present' %}checked{% endif %}/>
+                    ✅ Present
+                  </label>
+                  <label class="toggle-btn absent {% if s.status == 'Absent' %}selected{% endif %}"
+                         onclick="selectStatus({{ s.obj.id }}, 'Absent')">
+                    <input type="radio" name="status_{{ s.obj.id }}" value="Absent"
+                           {% if s.status == 'Absent' %}checked{% endif %}/>
+                    ❌ Absent
+                  </label>
+                </div>
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Table footer with progress -->
+        <div class="table-footer">
+          <p id="footerText">Marked <span id="footerMarked">{{ marked }}</span> of {{ total }} students</p>
+          <div class="progress-mini">
+            <span style="font-size:11.5px;color:var(--muted)" id="footerPct">
+              {% if total > 0 %}{% widthratio marked total 100 %}%{% else %}0%{% endif %}
+            </span>
+            <div class="prog-track">
+              <div class="prog-fill" id="footerBar"
+                   style="width:{% if total > 0 %}{% widthratio marked total 100 %}{% else %}0{% endif %}%">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% else %}
+        <div class="empty">
+          <span>🎓</span>
+          No students found. Please add students first.
+        </div>
+        {% endif %}
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- ── Sticky submit bar ──────────────────────────────────────── -->
+    <div class="submit-bar">
+      <div class="submit-info">
+        <p>Ready to save attendance for <strong>{{ today|date:"F j, Y" }}</strong>?</p>
+        <span id="submitSummary">Mark all students before saving.</span>
+      </div>
+      <div class="submit-actions">
+        <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-green" id="submitBtn">
+          💾 Save Attendance
+        </button>
+      </div>
+    </div>
+
+  </form><!-- /form -->
+</div><!-- /main -->
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+  const TOTAL = {{ total }};
+  let presentCount = 0;
+  let absentCount  = 0;
+
+  // ── Init counts from pre-filled values ──────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="radio"]:checked').forEach(r => {
+      if (r.value === 'Present') presentCount++;
+      if (r.value === 'Absent')  absentCount++;
+    });
+    updateCounts();
+  });
+
+  // ── Toggle present / absent for a single student ─────────────────
+  function selectStatus(id, status) {
+    const wrap     = document.getElementById(`toggle-${id}`);
+    const row      = document.getElementById(`row-${id}`);
+    const btns     = wrap.querySelectorAll('.toggle-btn');
+    const radios   = wrap.querySelectorAll('input[type="radio"]');
+
+    // Check what was previously selected
+    let prev = null;
+    radios.forEach(r => { if (r.checked) prev = r.value; });
+
+    // Update radio + button styles
+    btns.forEach(b => b.classList.remove('selected'));
+    radios.forEach(r => {
+      if (r.value === status) {
+        r.checked = true;
+        r.closest('.toggle-btn').classList.add('selected');
+      }
+    });
+
+    // Update row highlight
+    row.classList.remove('marked-present', 'marked-absent');
+    if (status === 'Present') row.classList.add('marked-present');
+    else                      row.classList.add('marked-absent');
+
+    // Update counts
+    if (prev !== status) {
+      if (status === 'Present') { presentCount++; if (prev === 'Absent') absentCount--; }
+      else                      { absentCount++;  if (prev === 'Present') presentCount--; }
+    }
+    updateCounts();
+    showToast(status === 'Present' ? '✅' : '❌',
+              `Marked ${status === 'Present' ? 'Present' : 'Absent'}`);
+  }
+
+  // ── Mark all students ─────────────────────────────────────────────
+  function markAll(status) {
+    document.querySelectorAll('.att-row').forEach(row => {
+      if (row.style.display === 'none') return; // skip filtered rows
+      const id = row.id.replace('row-', '');
+      selectStatus(id, status);
+    });
+  }
+
+  // ── Update live counters ──────────────────────────────────────────
+  function updateCounts() {
+    const marked  = presentCount + absentCount;
+    const pending = TOTAL - marked;
+    const pct     = TOTAL > 0 ? Math.round((marked / TOTAL) * 100) : 0;
+
+    document.getElementById('presentCount').textContent = presentCount;
+    document.getElementById('absentCount').textContent  = absentCount;
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('footerMarked').textContent = marked;
+    document.getElementById('footerPct').textContent    = pct + '%';
+    document.getElementById('footerBar').style.width    = pct + '%';
+
+    const summary = document.getElementById('submitSummary');
+    if (pending === 0) {
+      summary.innerHTML = `<span style="color:var(--green)">✅ All ${TOTAL} students marked — ready to save!</span>`;
+    } else {
+      summary.innerHTML = `${pending} student${pending !== 1 ? 's' : ''} still pending.`;
+    }
+  }
+
+  // ── Search + Course filter ────────────────────────────────────────
+  function filterRows() {
+    const q      = document.getElementById('searchInput').value.toLowerCase();
+    const course = document.getElementById('courseFilter').value.toLowerCase();
+    document.querySelectorAll('.att-row').forEach(row => {
+      const nameMatch   = row.dataset.name.includes(q);
+      const courseMatch = course === '' || row.dataset.course === course;
+      row.style.display = (nameMatch && courseMatch) ? '' : 'none';
+    });
+  }
+  document.getElementById('searchInput').addEventListener('input', filterRows);
+  document.getElementById('courseFilter').addEventListener('change', filterRows);
+
+  // ── Remove duplicate course options ──────────────────────────────
+  (function dedupeFilter() {
+    const sel  = document.getElementById('courseFilter');
+    const seen = new Set();
+    Array.from(sel.options).forEach(opt => {
+      if (seen.has(opt.value)) opt.remove();
+      else seen.add(opt.value);
+    });
+  })();
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(icon, msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastIcon').textContent = icon;
+    document.getElementById('toastMsg').textContent  = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+  }
+
+  // ── Submit confirmation ───────────────────────────────────────────
+  document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+    const pending = TOTAL - presentCount - absentCount;
+    if (pending > 0) {
+      const ok = confirm(
+        `${pending} student${pending !== 1 ? 's are' : ' is'} still unmarked.\nSave attendance anyway?`
+      );
+      if (!ok) e.preventDefault();
+    }
+  });
+</script>
+
+</body>
+</html>

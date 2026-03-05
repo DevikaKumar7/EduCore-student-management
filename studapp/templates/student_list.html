@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — Students</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #0d0f14;
+      --surface: #13161e;
+      --surf2:   #1a1e28;
+      --border:  rgba(255,255,255,0.07);
+      --accent:  #5b7cfa;
+      --green:   #4ec9a0;
+      --amber:   #f0a84e;
+      --red:     #f0614e;
+      --purple:  #a78bfa;
+      --text:    #eef0f7;
+      --muted:   #7a7f96;
+      --r:       14px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    .sidebar {
+      width: 230px; min-height: 100vh;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+    .logo { padding: 26px 22px 20px; border-bottom: 1px solid var(--border); }
+    .logo h1 { font-family: 'DM Serif Display', serif; font-size: 21px; }
+    .logo h1 span { color: var(--accent); }
+    .logo p { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+    nav { padding: 18px 10px; flex: 1; }
+    .nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--muted); padding: 0 12px; margin: 16px 0 5px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 13px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      text-decoration: none; margin-bottom: 2px; transition: all .2s;
+    }
+    .nav-item:hover { background: var(--surf2); color: var(--text); }
+    .nav-item.active { background: rgba(91,124,250,.15); color: var(--accent); }
+    .nav-item .ico { font-size: 15px; width: 18px; text-align: center; }
+    .sidebar-foot { padding: 14px; border-top: 1px solid var(--border); }
+    .user-pill { display: flex; align-items: center; gap: 9px; background: var(--surf2); border-radius: var(--r); padding: 9px 12px; }
+    .ava { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,var(--accent),#8b5cf6); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .user-pill p { font-size: 12.5px; font-weight: 500; line-height: 1.2; }
+    .user-pill span { font-size: 11px; color: var(--muted); }
+
+    /* ── Main ─────────────────────────────────────────────────────── */
+    .main { margin-left: 230px; flex: 1; display: flex; flex-direction: column; }
+
+    /* Topbar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 30px; border-bottom: 1px solid var(--border);
+      background: var(--bg); position: sticky; top: 0; z-index: 50;
+    }
+    .topbar-left h2 { font-family: 'DM Serif Display', serif; font-size: 19px; font-weight: 400; }
+    .topbar-left p  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .topbar-right   { display: flex; align-items: center; gap: 10px; }
+
+    .btn {
+      padding: 8px 16px; border-radius: 10px; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #4a6af0; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(91,124,250,.3); }
+    .btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-ghost:hover { background: var(--surf2); }
+
+    /* Content */
+    .content { padding: 28px 30px; }
+
+    /* ── Stats strip ──────────────────────────────────────────────── */
+    .stats-strip {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 14px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      transition: transform .2s;
+      animation: fadeUp .4s ease backwards;
+    }
+    .stat-card:nth-child(1){ animation-delay:.04s; }
+    .stat-card:nth-child(2){ animation-delay:.08s; }
+    .stat-card:nth-child(3){ animation-delay:.12s; }
+    .stat-card:nth-child(4){ animation-delay:.16s; }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-ico {
+      width: 40px; height: 40px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .stat-body strong { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1; display: block; }
+    .stat-body span   { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+
+    /* ── Toolbar ──────────────────────────────────────────────────── */
+    .toolbar {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 16px; justify-content: space-between;
+      animation: fadeUp .4s .18s ease backwards;
+    }
+    .toolbar-left  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .toolbar-right { display: flex; align-items: center; gap: 8px; }
+
+    .search-box {
+      display: flex; align-items: center; gap: 7px;
+      background: var(--surf2); border: 1px solid var(--border);
+      border-radius: 9px; padding: 7px 13px; width: 240px;
+    }
+    .search-box input {
+      background: none; border: none; outline: none;
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; width: 100%;
+    }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .filter-sel {
+      background: var(--surf2); border: 1px solid var(--border);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+      padding: 7px 12px; border-radius: 9px; outline: none; cursor: pointer;
+    }
+    .filter-sel option { background: var(--surf2); }
+
+    /* View toggle */
+    .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; }
+    .view-btn {
+      padding: 7px 13px; background: var(--surf2); border: none;
+      color: var(--muted); cursor: pointer; font-size: 14px; transition: all .18s;
+    }
+    .view-btn.active { background: var(--accent); color: #fff; }
+    .view-btn:hover:not(.active) { background: var(--bg); color: var(--text); }
+
+    /* Attendance filter pills */
+    .att-pills { display: flex; gap: 4px; }
+    .att-pill {
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--surf2);
+      color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all .18s;
+    }
+    .att-pill:hover { color: var(--text); }
+    .att-pill.on-all     { background: rgba(91,124,250,.15); border-color: var(--accent); color: var(--accent); }
+    .att-pill.on-good    { background: rgba(78,201,160,.15); border-color: var(--green);  color: var(--green); }
+    .att-pill.on-avg     { background: rgba(240,168,78,.15); border-color: var(--amber);  color: var(--amber); }
+    .att-pill.on-risk    { background: rgba(240,97,78,.15);  border-color: var(--red);    color: var(--red); }
+
+    /* ── TABLE VIEW ───────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden;
+      animation: fadeUp .4s .22s ease backwards;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      font-size: 10.5px; font-weight: 500; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--muted);
+      padding: 11px 20px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--surf2); cursor: pointer; user-select: none;
+    }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
+    .sort-arrow { margin-left: 4px; font-size: 10px; opacity: .6; }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      transition: background .15s;
+    }
+    tbody tr:last-child { border: none; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    td { padding: 13px 20px; font-size: 13px; vertical-align: middle; }
+
+    .s-info { display: flex; align-items: center; gap: 10px; }
+    .ava-sm {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+    }
+    .s-info strong { font-size: 13.5px; font-weight: 500; display: block; line-height: 1.3; }
+    .s-info span   { font-size: 11.5px; color: var(--muted); }
+
+    /* Mini attendance bar */
+    .att-cell { display: flex; align-items: center; gap: 8px; }
+    .mini-track { width: 64px; height: 5px; background: var(--surf2); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+    .mini-fill  { height: 100%; border-radius: 10px; }
+    .att-pct    { font-size: 12px; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+    }
+    .chip-good { background: rgba(78,201,160,.15);  color: var(--green); }
+    .chip-avg  { background: rgba(240,168,78,.15);  color: var(--amber); }
+    .chip-risk { background: rgba(240,97,78,.15);   color: var(--red); }
+
+    .act-btns { display: flex; gap: 5px; }
+    .icon-link {
+      width: 28px; height: 28px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surf2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 12px; color: var(--muted);
+      transition: all .18s; text-decoration: none;
+    }
+    .icon-link:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Table footer */
+    .table-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; border-top: 1px solid var(--border);
+      background: var(--surf2); font-size: 12.5px; color: var(--muted);
+    }
+
+    /* ── CARD/GRID VIEW ───────────────────────────────────────────── */
+    .cards-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+      gap: 16px;
+      animation: fadeUp .4s .22s ease backwards;
+    }
+    .cards-grid.active { display: grid; }
+    .table-wrap.hidden { display: none; }
+
+    .student-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px;
+      transition: transform .2s, box-shadow .2s;
+      animation: fadeUp .35s ease backwards;
+      position: relative; overflow: hidden;
+    }
+    .student-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .student-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,.35); }
+
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+    .card-ava {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600; flex-shrink: 0;
+    }
+    .card-name  { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .card-id    { font-size: 11px; color: var(--muted); }
+
+    .card-info  { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+    .card-row   { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
+    .card-row .lbl { color: var(--muted); width: 60px; flex-shrink: 0; font-size: 11.5px; }
+
+    .card-att { margin-bottom: 16px; }
+    .card-att-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+    .card-att-label span:last-child { color: var(--muted); }
+    .card-track { height: 6px; background: var(--surf2); border-radius: 10px; overflow: hidden; }
+    .card-fill  { height: 100%; border-radius: 10px; }
+
+    .card-actions { display: flex; gap: 8px; }
+    .card-btn {
+      flex: 1; padding: 7px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surf2); color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 12px; cursor: pointer; transition: all .18s;
+      text-align: center; text-decoration: none; display: block;
+    }
+    .card-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .card-btn-primary { background: rgba(91,124,250,.12); border-color: rgba(91,124,250,.3); color: var(--accent); }
+    .card-btn-primary:hover { background: var(--accent); color: #fff; }
+
+    /* Avatar gradient palette */
+    .g1 { background: linear-gradient(135deg,#5b7cfa,#8b5cf6); }
+    .g2 { background: linear-gradient(135deg,#f0a84e,#f06b4e); }
+    .g3 { background: linear-gradient(135deg,#4ec9a0,#0ea5e9); }
+    .g4 { background: linear-gradient(135deg,#c084fc,#f472b6); }
+    .g5 { background: linear-gradient(135deg,#fb923c,#f43f5e); }
+    .g6 { background: linear-gradient(135deg,#38bdf8,#818cf8); }
+    .g7 { background: linear-gradient(135deg,#34d399,#06b6d4); }
+    .g8 { background: linear-gradient(135deg,#f472b6,#fb7185); }
+
+    /* Empty state */
+    .empty { padding: 56px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+    .empty span { display: block; font-size: 36px; margin-bottom: 10px; }
+    .empty p { margin-bottom: 16px; }
+
+    /* Active filter notice */
+    .filter-notice {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(91,124,250,.1); border: 1px solid rgba(91,124,250,.2);
+      border-radius: 10px; padding: 10px 16px;
+      font-size: 13px; margin-bottom: 16px;
+      animation: fadeUp .3s ease;
+    }
+    .filter-notice a { color: var(--accent); text-decoration: none; margin-left: auto; font-size: 12px; }
+    .filter-notice a:hover { text-decoration: underline; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media(max-width:1100px) { .stats-strip { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:720px) {
+      .sidebar { display: none; }
+      .main    { margin-left: 0; }
+      .stats-strip { grid-template-columns: 1fr 1fr; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="logo">
+    <h1>Edu<span>Core</span></h1>
+    <p>Management System</p>
+  </div>
+  <nav>
+    <div class="nav-label">Main</div>
+    <a href="{% url 'dashboard' %}"         class="nav-item"><span class="ico">⊞</span> Dashboard</a>
+    <a href="{% url 'student_list' %}"      class="nav-item active"><span class="ico">🎓</span> Students</a>
+    <a href="{% url 'mark_attendance' %}"   class="nav-item"><span class="ico">✅</span> Mark Attendance</a>
+    <a href="{% url 'attendance_report' %}" class="nav-item"><span class="ico">📊</span> Reports</a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'logout' %}"            class="nav-item"><span class="ico">🚪</span> Logout</a>
+  </nav>
+  <div class="sidebar-foot">
+    <div class="user-pill">
+      <div class="ava">{{ admin_initials|default:"AD" }}</div>
+      <div>
+        <p>{{ admin_name|default:"Admin" }}</p>
+        <span>Administrator</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ───────────────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2>Students</h2>
+      <p>{{ student_data|length }} student{{ student_data|length|pluralize }} enrolled</p>
+    </div>
+    <div class="topbar-right">
+      <a href="{% url 'mark_attendance' %}" class="btn btn-ghost">✅ Mark Attendance</a>
+      <a href="{% url 'dashboard' %}"       class="btn btn-ghost">← Dashboard</a>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ── Stats strip ───────────────────────────────────────────── -->
+    <div class="stats-strip">
+      <div class="stat-card">
+        <div class="stat-ico" style="background:rgba(91,124,250,.15)">🎓</div>
+        <div class="stat-body">
+          <strong>{{ student_data|length }}</strong>
+          <span>Total Students</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ico" style="background:rgba(78,201,160,.15)">✅</div>
+        <div class="stat-body">
+          <strong id="goodCount">0</strong>
+          <span>Good Attendance ≥75%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ico" style="background:rgba(240,168,78,.15)">⚠️</div>
+        <div class="stat-body">
+          <strong id="avgCount">0</strong>
+          <span>Average 50–74%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-ico" style="background:rgba(240,97,78,.15)">🚨</div>
+        <div class="stat-body">
+          <strong id="riskCount">0</strong>
+          <span>At Risk &lt;50%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Toolbar ───────────────────────────────────────────────── -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <!-- Search -->
+        <div class="search-box">
+          <span style="color:var(--muted);font-size:13px">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by name, course…" autocomplete="off"/>
+        </div>
+
+        <!-- Course filter -->
+        <form method="get" id="courseForm" style="display:flex;gap:8px;align-items:center">
+          <select name="course" class="filter-sel" id="courseSelect" onchange="document.getElementById('courseForm').submit()">
+            <option value="">All Courses</option>
+            {% for c in courses %}
+            <option value="{{ c }}" {% if course == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+          {% if query %}<input type="hidden" name="q" value="{{ query }}"/>{% endif %}
+        </form>
+
+        <!-- Attendance status pills -->
+        <div class="att-pills">
+          <button class="att-pill on-all"  data-att="all"  onclick="filterAtt('all',this)">All</button>
+          <button class="att-pill"         data-att="good" onclick="filterAtt('good',this)">✅ Good</button>
+          <button class="att-pill"         data-att="avg"  onclick="filterAtt('avg',this)">⚠️ Avg</button>
+          <button class="att-pill"         data-att="risk" onclick="filterAtt('risk',this)">🚨 Risk</button>
+        </div>
+      </div>
+
+      <!-- View toggle -->
+      <div class="toolbar-right">
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnTable" onclick="setView('table')" title="Table view">☰</button>
+          <button class="view-btn"        id="btnCards" onclick="setView('cards')" title="Card view">⊞</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active filter notice -->
+    {% if query or course %}
+    <div class="filter-notice">
+      <span>🔎</span>
+      Filtering by:
+      {% if query %}<strong>"{{ query }}"</strong>{% endif %}
+      {% if course %}<strong>{{ course }}</strong>{% endif %}
+      — {{ student_data|length }} result{{ student_data|length|pluralize }}
+      <a href="{% url 'student_list' %}">Clear filters ✕</a>
+    </div>
+    {% endif %}
+
+    {% if student_data %}
+
+    <!-- ── TABLE VIEW ─────────────────────────────────────────────── -->
+    <div class="table-wrap" id="tableView">
+      <table id="studentTable">
+        <thead>
+          <tr>
+            <th style="width:44px">#</th>
+            <th onclick="sortTable(1)" id="th-name">Student <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable(2)" id="th-course">Course <span class="sort-arrow">↕</span></th>
+            <th>Gender</th>
+            <th>Age</th>
+            <th>Phone</th>
+            <th onclick="sortTable(6)" id="th-att">Attendance <span class="sort-arrow">↕</span></th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% for s in student_data %}
+          {% with pct=s.attendance %}
+          <tr class="stu-row"
+              data-name="{{ s.obj.user.get_full_name|default:s.obj.user.username|lower }}"
+              data-course="{{ s.obj.course|lower }}"
+              data-att="{% if pct >= 75 %}good{% elif pct >= 50 %}avg{% else %}risk{% endif %}"
+              data-pct="{{ pct }}">
+            <td style="color:var(--muted);font-size:12px">{{ forloop.counter }}</td>
+            <td>
+              <div class="s-info">
+                <div class="ava-sm g{{ forloop.counter|divisibleby:8|yesno:'8,' }}{% cycle 'g1' 'g2' 'g3' 'g4' 'g5' 'g6' 'g7' 'g8' %}">
+                  {{ s.initials }}
+                </div>
+                <div>
+                  <strong>{{ s.obj.user.get_full_name|default:s.obj.user.username }}</strong>
+                  <span>#STU-{{ s.obj.id|stringformat:"04d" }}</span>
+                </div>
+              </div>
+            </td>
+            <td style="font-size:13px">{{ s.obj.course }}</td>
+            <td style="color:var(--muted);font-size:13px">{{ s.obj.gender }}</td>
+            <td style="color:var(--muted);font-size:13px">{{ s.obj.age }}</td>
+            <td style="color:var(--muted);font-size:13px">{{ s.obj.phone }}</td>
+            <td>
+              <div class="att-cell">
+                <div class="mini-track">
+                  <div class="mini-fill"
+                    style="width:{{ pct }}%;background:{% if pct >= 75 %}var(--green){% elif pct >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+                  </div>
+                </div>
+                <span class="att-pct" style="color:{% if pct >= 75 %}var(--green){% elif pct >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+                  {{ pct }}%
+                </span>
+                <span style="font-size:11px;color:var(--muted)">({{ s.present }}/{{ s.total }})</span>
+              </div>
+            </td>
+            <td>
+              <span class="chip {% if pct >= 75 %}chip-good{% elif pct >= 50 %}chip-avg{% else %}chip-risk{% endif %}">
+                {% if pct >= 75 %}✅ Good{% elif pct >= 50 %}⚠️ Average{% else %}🚨 At Risk{% endif %}
+              </span>
+            </td>
+            <td>
+              <div class="act-btns">
+                <a href="{% url 'student_detail' s.obj.id %}" class="icon-link" title="View Profile">👁</a>
+                <a href="{% url 'attendance_report' %}?date=&course={{ s.obj.course }}" class="icon-link" title="View Attendance">📊</a>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="table-foot">
+        <p id="rowCountLabel">Showing all {{ student_data|length }} students</p>
+        <div style="display:flex;gap:16px">
+          <span style="color:var(--green);font-size:12px">✅ <span id="footGood">0</span> Good</span>
+          <span style="color:var(--amber);font-size:12px">⚠️ <span id="footAvg">0</span> Avg</span>
+          <span style="color:var(--red);font-size:12px">🚨 <span id="footRisk">0</span> Risk</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD VIEW ──────────────────────────────────────────────── -->
+    <div class="cards-grid" id="cardsView">
+      {% for s in student_data %}
+      {% with pct=s.attendance %}
+      <div class="student-card"
+           style="animation-delay:{{ forloop.counter0 }}00ms"
+           data-name="{{ s.obj.user.get_full_name|default:s.obj.user.username|lower }}"
+           data-course="{{ s.obj.course|lower }}"
+           data-att="{% if pct >= 75 %}good{% elif pct >= 50 %}avg{% else %}risk{% endif %}">
+
+        <!-- Top colour bar -->
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;
+                    background:{% if pct >= 75 %}var(--green){% elif pct >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+        </div>
+
+        <div class="card-top">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="card-ava {% cycle 'g1' 'g2' 'g3' 'g4' 'g5' 'g6' 'g7' 'g8' %}">
+              {{ s.initials }}
+            </div>
+            <div>
+              <div class="card-name">{{ s.obj.user.get_full_name|default:s.obj.user.username }}</div>
+              <div class="card-id">#STU-{{ s.obj.id|stringformat:"04d" }}</div>
+            </div>
+          </div>
+          <span class="chip {% if pct >= 75 %}chip-good{% elif pct >= 50 %}chip-avg{% else %}chip-risk{% endif %}"
+                style="font-size:11px;padding:3px 8px">
+            {% if pct >= 75 %}Good{% elif pct >= 50 %}Avg{% else %}Risk{% endif %}
+          </span>
+        </div>
+
+        <div class="card-info">
+          <div class="card-row"><span class="lbl">Course</span><span>{{ s.obj.course }}</span></div>
+          <div class="card-row"><span class="lbl">Gender</span><span>{{ s.obj.gender }}</span></div>
+          <div class="card-row"><span class="lbl">Age</span><span>{{ s.obj.age }} yrs</span></div>
+          <div class="card-row"><span class="lbl">Phone</span><span style="color:var(--muted)">{{ s.obj.phone }}</span></div>
+        </div>
+
+        <div class="card-att">
+          <div class="card-att-label">
+            <span>Attendance</span>
+            <span>{{ pct }}% &nbsp;({{ s.present }}/{{ s.total }} days)</span>
+          </div>
+          <div class="card-track">
+            <div class="card-fill"
+              style="width:{{ pct }}%;background:{% if pct >= 75 %}var(--green){% elif pct >= 50 %}var(--amber){% else %}var(--red){% endif %}">
+            </div>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <a href="{% url 'student_detail' s.obj.id %}" class="card-btn card-btn-primary">👁 View Profile</a>
+          <a href="{% url 'attendance_report' %}?course={{ s.obj.course }}" class="card-btn">📊 Report</a>
+        </div>
+
+      </div>
+      {% endwith %}
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="empty" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r)">
+      <span>🎓</span>
+      <p>
+        {% if query or course %}
+          No students match your filters.
+        {% else %}
+          No students enrolled yet.
+        {% endif %}
+      </p>
+      {% if query or course %}
+      <a href="{% url 'student_list' %}" class="btn btn-ghost">Clear filters</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+  // ── Compute attendance bucket counts ─────────────────────────────
+  let goodC = 0, avgC = 0, riskC = 0;
+  document.querySelectorAll('.stu-row, .student-card').forEach(el => {
+    const att = el.dataset.att;
+    if      (att === 'good') goodC++;
+    else if (att === 'avg')  avgC++;
+    else if (att === 'risk') riskC++;
+  });
+
+  // Update summary cards
+  animCount('goodCount', goodC);
+  animCount('avgCount',  avgC);
+  animCount('riskCount', riskC);
+
+  // Update footer
+  const fg = document.getElementById('footGood');
+  const fa = document.getElementById('footAvg');
+  const fr = document.getElementById('footRisk');
+  if (fg) fg.textContent = goodC;
+  if (fa) fa.textContent = avgC;
+  if (fr) fr.textContent = riskC;
+
+  function animCount(id, target) {
+    const el = document.getElementById(id);
+    if (!el || target === 0) return;
+    let cur = 0;
+    const t = setInterval(() => {
+      cur = Math.min(cur + 1, target);
+      el.textContent = cur;
+      if (cur >= target) clearInterval(t);
+    }, 800 / target);
+  }
+
+  // ── Search ────────────────────────────────────────────────────────
+  let currentAtt = 'all';
+  document.getElementById('searchInput').addEventListener('input', function() {
+    applyFilters(this.value.toLowerCase(), currentAtt);
+  });
+
+  function filterAtt(att, btn) {
+    currentAtt = att;
+    document.querySelectorAll('.att-pill').forEach(b => {
+      b.className = 'att-pill';
+    });
+    btn.classList.add('on-' + att);
+    applyFilters(document.getElementById('searchInput').value.toLowerCase(), att);
+  }
+
+  function applyFilters(q, att) {
+    let vis = 0;
+    // Table rows
+    document.querySelectorAll('.stu-row').forEach(row => {
+      const nameMatch = row.dataset.name.includes(q) || row.dataset.course.includes(q);
+      const attMatch  = att === 'all' || row.dataset.att === att;
+      const show      = nameMatch && attMatch;
+      row.style.display = show ? '' : 'none';
+      if (show) vis++;
+    });
+    // Cards
+    document.querySelectorAll('.student-card').forEach(card => {
+      const nameMatch = card.dataset.name.includes(q) || card.dataset.course.includes(q);
+      const attMatch  = att === 'all' || card.dataset.att === att;
+      card.style.display = (nameMatch && attMatch) ? '' : 'none';
+    });
+    const lbl = document.getElementById('rowCountLabel');
+    if (lbl) lbl.textContent = `Showing ${vis} student${vis !== 1 ? 's' : ''}`;
+  }
+
+  // ── View toggle ──────────────────────────────────────────────────
+  function setView(v) {
+    const tableWrap = document.getElementById('tableView');
+    const cardsWrap = document.getElementById('cardsView');
+    const btnT = document.getElementById('btnTable');
+    const btnC = document.getElementById('btnCards');
+    if (v === 'table') {
+      tableWrap.classList.remove('hidden');
+      cardsWrap.classList.remove('active');
+      btnT.classList.add('active');
+      btnC.classList.remove('active');
+      localStorage.setItem('educore_view', 'table');
+    } else {
+      tableWrap.classList.add('hidden');
+      cardsWrap.classList.add('active');
+      btnC.classList.add('active');
+      btnT.classList.remove('active');
+      localStorage.setItem('educore_view', 'cards');
+    }
+  }
+  // Restore last view preference
+  if (localStorage.getItem('educore_view') === 'cards') setView('cards');
+
+  // ── Table sort ──────────────────────────────────────────────────
+  let sortDir = {};
+  function sortTable(col) {
+    const tbody = document.getElementById('tableBody');
+    const rows  = Array.from(tbody.querySelectorAll('tr'));
+    const dir   = sortDir[col] === 'asc' ? 'desc' : 'asc';
+    sortDir = {}; sortDir[col] = dir;
+
+    // Reset all arrows
+    document.querySelectorAll('thead th .sort-arrow').forEach(a => a.textContent = '↕');
+    const headers = { 1:'th-name', 2:'th-course', 6:'th-att' };
+    const th = document.getElementById(headers[col]);
+    if (th) th.querySelector('.sort-arrow').textContent = dir === 'asc' ? '↑' : '↓';
+
+    rows.sort((a, b) => {
+      let av, bv;
+      if (col === 6) {
+        av = parseFloat(a.dataset.pct  || 0);
+        bv = parseFloat(b.dataset.pct  || 0);
+      } else {
+        av = a.cells[col]?.textContent.trim().toLowerCase() || '';
+        bv = b.cells[col]?.textContent.trim().toLowerCase() || '';
+      }
+      if (av < bv) return dir === 'asc' ? -1 : 1;
+      if (av > bv) return dir === 'asc' ?  1 : -1;
+      return 0;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  }
+</script>
+
+</body>
+</html>

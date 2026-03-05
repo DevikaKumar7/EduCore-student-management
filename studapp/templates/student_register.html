@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#13161e;--surf2:#1a1e28;--border:rgba(255,255,255,0.07);--accent:#5b7cfa;--green:#4ec9a0;--red:#f0614e;--text:#eef0f7;--muted:#7a7f96;--r:14px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px 16px;}
+    .box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:640px;padding:40px;}
+    .logo{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px;}
+    .logo span{color:var(--accent);}
+    .sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+    h2{font-size:17px;font-weight:600;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .fg{margin-bottom:16px;}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+    input,select,textarea{width:100%;background:var(--surf2);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:.15s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+    select option{background:var(--surf2);}
+    textarea{resize:vertical;min-height:80px;}
+    .btn{width:100%;padding:13px;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;margin-top:8px;}
+    .btn:hover{opacity:.88;}
+    .errors{background:rgba(240,97,78,.08);border:1px solid rgba(240,97,78,.3);border-radius:10px;padding:14px 16px;margin-bottom:20px;}
+    .errors p{font-size:13px;color:var(--red);padding:2px 0;}
+    .foot{text-align:center;margin-top:20px;font-size:13px;color:var(--muted);}
+    .foot a{color:var(--accent);text-decoration:none;font-weight:600;}
+  </style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">Edu<span>Core</span></div>
+  <div class="sub">Create your student account</div>
+  <h2>Student Registration</h2>
+
+  {% if errors %}
+  <div class="errors">{% for e in errors %}<p>⚠ {{ e }}</p>{% endfor %}</div>
+  {% endif %}
+
+  <form method="post">{% csrf_token %}
+    <div class="row2">
+      <div class="fg"><label>First Name *</label><input type="text" name="first_name" value="{{ data.first_name }}" placeholder="John" required/></div>
+      <div class="fg"><label>Last Name *</label><input type="text" name="last_name" value="{{ data.last_name }}" placeholder="Doe" required/></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Username *</label><input type="text" name="username" value="{{ data.username }}" placeholder="john_doe" required/></div>
+      <div class="fg"><label>Email</label><input type="email" name="email" value="{{ data.email }}" placeholder="john@example.com"/></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Password *</label><input type="password" name="password" placeholder="Min 8 characters" required/></div>
+      <div class="fg"><label>Confirm Password *</label><input type="password" name="password2" placeholder="Repeat password" required/></div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Age *</label><input type="number" name="age" value="{{ data.age }}" placeholder="20" min="10" max="60" required/></div>
+      <div class="fg"><label>Gender *</label>
+        <select name="gender" required>
+          <option value="">— Select —</option>
+          <option value="Male" {% if data.gender == 'Male' %}selected{% endif %}>Male</option>
+          <option value="Female" {% if data.gender == 'Female' %}selected{% endif %}>Female</option>
+          <option value="Other" {% if data.gender == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fg"><label>Course *</label><input type="text" name="course" value="{{ data.course }}" placeholder="e.g. Computer Science" required/></div>
+      <div class="fg"><label>Phone *</label><input type="text" name="phone" value="{{ data.phone }}" placeholder="+91 9876543210" required/></div>
+    </div>
+    <div class="fg"><label>Address</label><textarea name="address" placeholder="Your address...">{{ data.address }}</textarea></div>
+    <button type="submit" class="btn">Create Account →</button>
+  </form>
+  <div class="foot">Already have an account? <a href="{% url 'login' %}">Login here</a></div>
+</div>
+</body>
+</html>

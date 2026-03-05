@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — Leave Management</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#13161e;--surf2:#1a1e28;--border:rgba(255,255,255,0.07);--accent:#5b7cfa;--green:#4ec9a0;--amber:#f0a84e;--red:#f0614e;--text:#eef0f7;--muted:#7a7f96;--r:14px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;min-height:100vh;}
+    .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+    .logo{padding:26px 22px 20px;border-bottom:1px solid var(--border);}
+    .logo h1{font-family:'DM Serif Display',serif;font-size:21px;}
+    .logo h1 span{color:var(--accent);}
+    .logo p{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+    nav{padding:18px 10px;flex:1;overflow-y:auto;}
+    .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);padding:0 12px;margin:16px 0 5px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:10px;color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:.15s;}
+    .nav-item:hover{background:var(--surf2);color:var(--text);}
+    .nav-item.active{background:rgba(91,124,250,.15);color:var(--accent);}
+    .nav-item .ico{font-size:15px;width:18px;text-align:center;}
+    .main{margin-left:230px;flex:1;display:flex;flex-direction:column;}
+    .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+    .topbar h2{font-size:18px;font-weight:600;}
+    .topbar-actions{display:flex;gap:10px;}
+    .content{padding:30px 32px;flex:1;}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+    .stat-card .val{font-size:28px;font-weight:600;margin:6px 0 2px;}
+    .stat-card .lbl{font-size:12px;color:var(--muted);}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+    .card-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+    .card-head h3{font-size:15px;font-weight:600;}
+    .filters{display:flex;gap:10px;}
+    .filters select{background:var(--surf2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:13px;outline:none;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:.15s;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-approve{background:rgba(78,201,160,.15);color:var(--green);border:1px solid rgba(78,201,160,.3);}
+    .btn-approve:hover{background:rgba(78,201,160,.25);}
+    .btn-reject{background:rgba(240,97,78,.15);color:var(--red);border:1px solid rgba(240,97,78,.3);}
+    .btn-reject:hover{background:rgba(240,97,78,.25);}
+    .btn-ghost{background:var(--surf2);color:var(--text);border:1px solid var(--border);}
+    .btn-sm{padding:5px 12px;font-size:12px;}
+    table{width:100%;border-collapse:collapse;}
+    th{padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);}
+    td{padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border);}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+    .badge-pending{background:rgba(240,168,78,.15);color:var(--amber);}
+    .badge-approved{background:rgba(78,201,160,.15);color:var(--green);}
+    .badge-rejected{background:rgba(240,97,78,.15);color:var(--red);}
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:14px;}
+    .alert-success{background:rgba(78,201,160,.1);border:1px solid rgba(78,201,160,.3);color:var(--green);}
+    .alert-error{background:rgba(240,97,78,.1);border:1px solid rgba(240,97,78,.3);color:var(--red);}
+    .empty{text-align:center;padding:50px;color:var(--muted);}
+    .reason-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:13px;}
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="logo"><h1>Edu<span>Core</span></h1><p>Admin Panel</p></div>
+  <nav>
+    <div class="nav-label">Main</div>
+    <a href="{% url 'dashboard' %}" class="nav-item"><span class="ico">🏠</span> Dashboard</a>
+    <a href="{% url 'student_list' %}" class="nav-item"><span class="ico">👥</span> Students</a>
+    <a href="{% url 'mark_attendance' %}" class="nav-item"><span class="ico">✅</span> Mark Attendance</a>
+    <a href="{% url 'attendance_report' %}" class="nav-item"><span class="ico">📊</span> Reports</a>
+    <div class="nav-label">Features</div>
+    <a href="{% url 'task_list' %}" class="nav-item"><span class="ico">📋</span> Task Management</a>
+    <a href="{% url 'leave_list' %}" class="nav-item active"><span class="ico">📅</span> Leave Management</a>
+    <div class="nav-label">Account</div>
+    <a href="{% url 'logout' %}" class="nav-item"><span class="ico">🚪</span> Logout</a>
+  </nav>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <h2>📅 Leave Management</h2>
+    <div class="topbar-actions">
+      
+    </div>
+  </div>
+  <div class="content">
+
+    {% for msg in messages %}
+      <div class="alert {% if msg.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ msg }}</div>
+    {% endfor %}
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="lbl">Total Requests</div>
+        <div class="val">{{ total }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">Pending</div>
+        <div class="val" style="color:var(--amber)">{{ pending }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">Approved</div>
+        <div class="val" style="color:var(--green)">{{ approved }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="lbl">Rejected</div>
+        <div class="val" style="color:var(--red)">{{ rejected }}</div>
+      </div>
+    </div>
+
+    <!-- Leave Table -->
+    <div class="card">
+      <div class="card-head">
+        <h3>All Leave Requests</h3>
+        <form method="get" class="filters">
+          <select name="status" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            <option value="Pending"  {% if status_f == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="Approved" {% if status_f == 'Approved' %}selected{% endif %}>Approved</option>
+            <option value="Rejected" {% if status_f == 'Rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+        </form>
+      </div>
+
+      {% if leaves %}
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student</th>
+            <th>Leave Type</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Days</th>
+            <th>Reason</th>
+            <th>Applied On</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for leave in leaves %}
+          <tr>
+            <td style="color:var(--muted)">{{ forloop.counter }}</td>
+            <td style="font-weight:500">{{ leave.student }}</td>
+            <td>{{ leave.get_leave_type_display }}</td>
+            <td>{{ leave.from_date }}</td>
+            <td>{{ leave.to_date }}</td>
+            <td style="font-weight:600">{{ leave.days_count }}</td>
+            <td><div class="reason-cell" title="{{ leave.reason }}">{{ leave.reason }}</div></td>
+            <td style="color:var(--muted);font-size:12px">{{ leave.applied_on|date:"M d, Y" }}</td>
+            <td>
+              {% if leave.status == 'Pending' %}
+                <span class="badge badge-pending">⏳ Pending</span>
+              {% elif leave.status == 'Approved' %}
+                <span class="badge badge-approved">✅ Approved</span>
+              {% else %}
+                <span class="badge badge-rejected">❌ Rejected</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if leave.status == 'Pending' %}
+                <a href="{% url 'leave_action' leave.id %}" class="btn btn-approve btn-sm">Review</a>
+              {% else %}
+                <a href="{% url 'leave_action' leave.id %}" class="btn btn-ghost btn-sm">View</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="empty">
+          <p style="font-size:40px">📅</p>
+          <p style="margin-top:10px">No leave requests found.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

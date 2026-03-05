@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduCore — View Submission</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#13161e;--surf2:#1a1e28;--border:rgba(255,255,255,0.07);--accent:#5b7cfa;--green:#4ec9a0;--red:#f0614e;--text:#eef0f7;--muted:#7a7f96;--r:14px;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px;}
+    .box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:600px;padding:36px;}
+    h2{font-size:18px;font-weight:600;margin-bottom:20px;}
+    .field{margin-bottom:16px;}
+    .label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px;}
+    .value{font-size:14px;font-weight:500;}
+    .note{background:var(--surf2);border:1px solid var(--border);border-radius:9px;padding:14px;font-size:14px;color:var(--muted);margin-top:4px;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;border:none;margin-top:20px;margin-right:10px;}
+    .btn-primary{background:var(--accent);color:#fff;}
+    .btn-ghost{background:var(--surf2);color:var(--text);border:1px solid var(--border);}
+    .no-sub{text-align:center;padding:30px;color:var(--muted);}
+  </style>
+</head>
+<body>
+<div class="box">
+  <h2>📎 Task Submission — {{ task.title }}</h2>
+  <div class="field"><div class="label">Student</div><div class="value">{{ task.student }}</div></div>
+  <div class="field"><div class="label">Due Date</div><div class="value">{{ task.due_date }}</div></div>
+  {% if submission %}
+    <div class="field"><div class="label">Submitted On</div><div class="value">{{ submission.submitted_on|date:"F d, Y H:i" }}</div></div>
+    <div class="field"><div class="label">File</div><div class="value">
+      <a href="{{ submission.file.url }}" target="_blank" style="color:var(--accent)">📎 Download File</a>
+    </div></div>
+    <!-- inline preview -->
+    <div class="field" style="margin-top:16px;">
+      <div class="label">Preview</div>
+      <div class="value">
+        {% if can_preview %}
+          <iframe src="{{ submission.file.url }}" style="width:100%;height:400px;border:1px solid var(--border);"></iframe>
+        {% else %}
+          <p style="color:var(--muted);font-size:14px;">
+            ⚠️ Preview not available for this file type. Please download the file
+            using the link above to open it on your device.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+    {% if submission.note %}
+    <div class="field"><div class="label">Student Note</div><div class="note">{{ submission.note }}</div></div>
+    {% endif %}
+  {% else %}
+    <div class="no-sub"><p style="font-size:32px">📭</p><p style="margin-top:10px">No submission yet for this task.</p></div>
+  {% endif %}
+  <a href="{% url 'task_list' %}" class="btn btn-ghost">← Back to Tasks</a>
+</div>
+</body></html>
