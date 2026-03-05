@@ -28,6 +28,8 @@ urlpatterns = [
     path('announcements/',                      views.admin_announcements, name='admin_announcements'),
 
     # Student Portal
+    path('student/dashboard/', views.student_dashboard, name='student_dashboard'),
+
     path('student/dashboard/',                  views.student_dashboard,     name='student_dashboard'),
     path('student/tasks/',                      views.student_my_tasks,      name='student_my_tasks'),
     path('student/tasks/<int:task_id>/submit/', views.student_submit_task,   name='student_submit_task'),

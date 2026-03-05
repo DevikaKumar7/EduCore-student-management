@@ -601,7 +601,8 @@ def admin_announcements(request):
     return render(request, 'announcements_admin.html', {'announcements':announcements,'courses':courses,
         'total_count':announcements.count(),'active_count':announcements.filter(is_active=True).count(),
         'urgent_count':announcements.filter(priority='urgent').count()})
-
+def home(request):
+    return HttpResponse("Hello World")
 
 def _initials(name):
     parts = name.strip().split()
